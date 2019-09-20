@@ -5,11 +5,8 @@ var router = express.Router()
 router.post('/users', async (req, res) => {
     const user = new User(req.body)
     try{
-        const response = await user.save()
-        if (!response){
-            return res.status(400).send()
-        }
-        res.send(response)
+        await user.save()
+        res.status(201).send(user)
     }
     catch(e){
         res.status(400).send(e)
