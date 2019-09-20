@@ -49,12 +49,15 @@ router.patch('/tasks/:id', async (req, res) => {
     }
 
     try {
-        const task = await Task.findOneAndUpdate({_id: req.params.id}, req.body, {new: true, runValidators: true})
+        const task = await Task.findOne({_id: req.params.id})
+        tobeUpdated.forEach(prop => task[prop] = req.body[prop])
+        const res_task = await task.save()
+    
         if (!task) {
             return res.status(400).send({error: "Update failed"})
         }
 
-        res.send(task)
+        res.send(res_task)
     }
     catch(e) {
         res.status(500).send(e)

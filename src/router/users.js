@@ -46,11 +46,14 @@ router.patch('/users/:id', async (req, res) => {
     }
 
     try{
-        const user = await User.findOneAndUpdate({_id: req.params.id}, req.body, {new: true, runValidators: true})
+        const user = await User.findById(req.params.id)
+        tobeUpdated.forEach(prop => user[prop] = req.body[prop])
+        const res_user = await user.save()
+        
         if (!user){
             return res.status(400).send({error: "Update failed"})
         }
-        res.send(user)
+        res.send(res_user)
     }
     catch(e){
         res.status(400).send(e)
@@ -68,6 +71,16 @@ router.delete('/users/:id', async (req, res) => {
     }
     catch(e){
         res.status(500).send(e)
+    }
+})
+
+router.post('/users/login', async(req, res) => {
+    try {
+        const user = await User.findByCredentials(req.body.email, req.body.password)
+        res.send(user)
+    }
+    catch(e){
+        res.status(400).send(e.message)
     }
 })
 
