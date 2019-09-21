@@ -1,5 +1,6 @@
 var express = require('express')
 const User = require('../models/user')
+const auth = require('../middleware/auth')
 var router = express.Router()
 
 router.post('/users', async (req, res) => {
@@ -15,17 +16,11 @@ router.post('/users', async (req, res) => {
 })
 
 
-router.get('/users', async (req, res) => {
-    try {
-        const user = await User.find({})
-        res.send(user)
-    }
-    catch(e){
-            res.status(500).send(e)
-    }
+router.get('/users/me', auth, async (req, res) => {
+    res.send(req.user)
 })
 
-router.get('/users/:id', async (req, res) => {
+router.get('/users/:id', auth, async (req, res) => {
     try {
         const user = await User.findOne({_id: req.params.id})
         if (!user){
@@ -86,4 +81,23 @@ router.post('/users/login', async(req, res) => {
     }
 })
 
+router.post('/users/logout', auth, async(req, res) => {
+    try {
+        req.user.tokens = req.user.tokens.filter(token => token.token !== req.token)
+        await req.user.save()
+        res.send()
+    } catch(e){
+        res.status(500).send()
+    }
+})
+
+router.post('/users/logoutAll', auth, async(req, res) => {
+    try {
+        req.user.tokens = []
+        await req.user.save()
+        res.send()
+    } catch (e){
+        res.status(500).send()
+    }
+})
 module.exports = router
