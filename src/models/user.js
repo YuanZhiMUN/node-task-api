@@ -63,7 +63,7 @@ userSchema.methods.generateToken = async function(){
     return token
 }
 
-userSchema.methods.getPublicInfor = function(){
+userSchema.methods.toJSON = function(){
     const user = this
     const userObject = user.toObject()
     delete userObject.password

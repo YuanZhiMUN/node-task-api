@@ -33,7 +33,7 @@ router.get('/users/:id', auth, async (req, res) => {
     }
 })
 
-router.patch('/users/:id', async (req, res) => {
+router.patch('/users/me', auth, async (req, res) => {
     const allowedUpdate = ['name', 'email', 'password', 'age']
     const tobeUpdated = Object.keys(req.body)
     const validUpdate = tobeUpdated.every(prop => allowedUpdate.includes(prop))
@@ -41,14 +41,9 @@ router.patch('/users/:id', async (req, res) => {
         return res.status(400).send({error: "Invalid update"})
     }
 
-    try{
-        const user = await User.findById(req.params.id)
-        tobeUpdated.forEach(prop => user[prop] = req.body[prop])
-        const res_user = await user.save()
-        
-        if (!user){
-            return res.status(400).send({error: "Update failed"})
-        }
+    try {
+        tobeUpdated.forEach(prop => req.user[prop] = req.body[prop])
+        const res_user = await req.user.save()
         res.send(res_user)
     }
     catch(e){
@@ -56,16 +51,12 @@ router.patch('/users/:id', async (req, res) => {
     }
 })
 
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/me', auth, async (req, res) => {
     try {
-        const user = await User.findOneAndDelete({_id: req.params.id})
-        if(!user){
-            return res.status(404).send({error: "delete failed"})
-        }
-
-        res.send(user)
+        await req.user.remove()
+        res.send(req.user)
     }
-    catch(e){
+    catch(e) {
         res.status(500).send(e)
     }
 })
@@ -74,7 +65,7 @@ router.post('/users/login', async(req, res) => {
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
         const token = await user.generateToken()
-        res.send({user: user.getPublicInfor(), token})
+        res.send({user, token})
     }
     catch(e){
         res.status(400).send(e.message)
@@ -100,4 +91,6 @@ router.post('/users/logoutAll', auth, async(req, res) => {
         res.status(500).send()
     }
 })
+
+
 module.exports = router
