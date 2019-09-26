@@ -2,8 +2,24 @@ const express = require('express')
 const Task = require('../models/task')
 const router = express.Router()
 const auth = require('../middleware/auth')
+const nodemailer = require('nodemailer')
 
-router.post('/tasks', auth, async (req, res) => {
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'yuanzhifortest@gmail.com',
+      pass: 'yz081221@'
+    }
+})
+
+const mailOptions = {
+    from: 'yuanzhifortest@gmail.com',
+    to: 'yuanzhifortest@yahoo.com',
+    subject: 'Sending Email using Node.js',
+    text: 'That was easy!'
+};
+
+  router.post('/tasks', auth, async (req, res) => {
     const task = new Task({
         ...req.body,
         owner: req.user._id

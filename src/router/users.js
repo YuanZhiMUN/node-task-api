@@ -4,6 +4,30 @@ const auth = require('../middleware/auth')
 var router = express.Router()
 const multer = require('multer')
 const sharp = require('sharp')
+const nodemailer = require('nodemailer')
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: '*****@gmail.com',
+      pass: '*****'
+    }
+})
+
+const mailWelcome = {
+    from: '*****t@gmail.com',
+    to: '*****t@gmail.com',
+    subject: 'Welcome',
+    text: 'Welcome to Task manager !'
+};
+
+const mailThanks = {
+    from: '*****@gmail.com',
+    to: '******@gmail.com',
+    subject: 'Thanks',
+    text: 'Sorry for your leave'
+};
+
 const upload = multer({
     limits: {
         fileSize: 1000000
@@ -22,6 +46,13 @@ router.post('/users', async (req, res) => {
     try{ 
         await user.save()
         const token = await user.generateToken()
+        transporter.sendMail(mailWelcome, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+          })
         res.status(201).send({ user, token })
     }
     catch(e){
@@ -68,6 +99,13 @@ router.patch('/users/me', auth, async (req, res) => {
 router.delete('/users/me', auth, async (req, res) => {
     try {
         await req.user.remove()
+        transporter.sendMail(mailThanks, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+          })
         res.send(req.user)
     }
     catch(e) {
